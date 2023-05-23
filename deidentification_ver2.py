@@ -311,7 +311,7 @@ class NamedEntityRecognition:
         import requests
         print('prompt',prompt)
         api_endpoint = "https://api.openai.com/v1/engines/text-davinci-003/completions"
-        api_key = "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"
+        api_key = ""
 
         payload = {
         "prompt": prompt,
@@ -411,15 +411,7 @@ class NamedEntityRecognition:
     
 input_text1 = "  ramesh kumar is living in california and have ssn as 123-32-2121 date is 11/08/2001 having memidd w123423112 and email  markj@aetna.com and phone num +12205344654 and this information has been sent by the mark jones"   
 input_text2=  'Michael Davis born on 01/01/1950 has a member ID of w123423112, SSN 711-38-0829, and email michaeldavis@hotmail.com. Phone number is 12205344654'
-input_text='''
-**** External Email - Use Caution ****
 
-My name is Kathrin Lemaich. I submitted to get my dental check up reward on 10/19. It never came. I called last Monday and they said they would look into it. I got an email Thursday 11/10 that said I would have it within 48 hours. That was up yesterday. We had no issues last year. 
-
-Thank you. 
-i am residing in California
-kristine.white@alexlee.com
-'''
 input_text3='Patient John Smith, with the Social Security Number 123-45-6789, was born on January 15, 1980. You can contact him at (555) 123-4567. His address is 123 Main Street, Anytown, USA \r\n**** External Email - Use Caution ****\r\n\r\nMy name is Kathrin Lemaich. I submitted to get my dental check up reward on 10/19. It never came. I called last Monday and they said they would look into it. I got an email Thursday 11/10 that said I would have it within 48 hours. That was up yesterday. We had no issues last year. \r\n\r\nThank you. \r\ni am residing in California\r\nkristine.white@alexlee.com .\r\n**** External Email - Use Caution ****\r\n\r\nMy name is Kathrin Lemaich. I submitted to get my dental check up reward on 10/19. It never came. I called last Monday and they said they would look into it. I got an email Thursday 11/10 that said I would have it within 48 hours. That was up yesterday. We had no issues last year. \r\n\r\nThank you. \r\ni am residing in California\r\nkristine.white@alexlee.com . \r\n**** External Email - Use Caution ****\r\n\r\nMy name is Kathrin Lemaich. I submitted to get my dental check up reward on 10/19. It never came. I called last Monday and they said they would look into it. I got an email Thursday 11/10 that said I would have it within 48 hours. That was up yesterday. We had no issues last year. \r\n\r\nThank you. \r\ni am residing in California\r\nkristine.white@alexlee.com  .ramesh kumar is living in california and have ssn as 123-32-2121 date is 11/08/2001 having memidd w123423112 and email  markj@aetna.com and phone num +12205344654 and this information has been sent by the mark jones . ramesh kumar is living in california and have ssn as 123-32-2121 date is 11/08/2001 having memidd w123423112 and email  markj@aetna.com and phone num +12205344654 and this information has been sent by the mark jones '
 
 
