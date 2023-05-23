@@ -8,9 +8,9 @@ import json
 import sys
 sys.path.append('/Users/nikhiljaitak/Downloads/CHATGPT/Deidentification')
 import time
-import deidentification_ver2
-from deidentification_ver2 import NamedEntityRecognition
-from Summarizer_ver2 import Summarization
+import deidentification
+from deidentification import NamedEntityRecognition
+from Summarizer import Summarization
 
 app = Flask(__name__)
 

@@ -4,7 +4,7 @@ import sys
 import re
 import nltk
 import time
-#nltk.download('stopwords')
+nltk.download('stopwords')
 from transformers import BartTokenizer, PegasusTokenizer
 from transformers import BartForConditionalGeneration, PegasusForConditionalGeneration
 from transformers import pipeline
