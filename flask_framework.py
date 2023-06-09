@@ -7,6 +7,7 @@ import sys
 import json
 import sys
 sys.path.append('/Users/nikhiljaitak/Downloads/CHATGPT/Deidentification')
+#sys.path.append('/home/ubuntu/deisummarizer_git/deidentification')
 import time
 import deidentification
 from deidentification import NamedEntityRecognition
@@ -39,8 +40,10 @@ def handle_error(error):
 entityObj = NamedEntityRecognition()
 summaryObj=Summarization()
 lukeTokenizer=entityObj.loadTokenizer('/Users/nikhiljaitak/Downloads/Suresh_Sir_/Codes/Dev/Code_27Sept/SO_AI-ML_L1L2EmailIntentPredictor-master/Models/Ensemble_Torch_NER/Tokenizer/')
-#lukeModel=modelObj.getLukeModel('/Ensemble_Torch_NER')
-#lukeModel=modelObj.loadSavedModel('Ensemble_Torch_NER/Ensemble_Torch_NER/')
+
+#lukeTokenizer=entityObj.loadTokenizer('/home/ubuntu/deisummarizer/Weights/Ensemble_Torch_NER/Tokenizer/')
+#lukeModel=entityObj.loadSavedModel('/home/ubuntu/deisummarizer/Weights/Ensemble_Torch_NER/')
+
 lukeModel=entityObj.loadSavedModel('/Users/nikhiljaitak/Downloads/Suresh_Sir_/Codes/Dev/Code_27Sept/SO_AI-ML_L1L2EmailIntentPredictor-master/Models/Ensemble_Torch_NER/')
 
 from flask_cors import cross_origin
@@ -53,25 +56,47 @@ def home():
 def model():
     response={}
     try:
-        text = request.form['input_text']
+        print(request)
+        input_text = request.form['input_text']
         task = request.form['task']
-        print(text,task)
-        response['question']=text
+        cgpt_endpoint = request.form['cgpt_endpoint']
+        max_Tokens = request.form['max_Token']
+        num_Responses = request.form['num_Responses']
+        temperature = request.form['temperature']
+        regen_Temperature = request.form['regen_Temperature']
+        api_key = request.form['api_key']
+        history_conversations = request.form['history_conversations']
+        print(input_text,task,cgpt_endpoint,max_Tokens, num_Responses, temperature,regen_Temperature)
+
+        
+        response['question']=input_text
+        response['cgpt_endpoint']=cgpt_endpoint
+        response['maxToken']=max_Tokens
+        response['numResponses']=num_Responses
+        response['temperature']=temperature
+        response['regenTemperature']=regen_Temperature
+        response['apikey']=api_key
+        response['history_conversations']=history_conversations
+
+        chatgpt_configs={'cgptEndpoint':cgpt_endpoint,'maxTokens':str(max_Tokens),
+                         'numResponses':num_Responses,'temperature':temperature,
+                         'regenTemperature':regen_Temperature,'apiKey':api_key,
+                         'history_conversations':history_conversations}
 
         start_time = time.time()
-        deidentified = entityObj.get_entities(lukeTokenizer, lukeModel, text)
+        deidentified = entityObj.get_entities(lukeTokenizer, lukeModel, input_text)
         response['deidentified']=deidentified
         end_time = time.time()
         running_time = end_time - start_time
         response['modeltime']=str(running_time)+" seconds"
     
-        if task == 'deidentify_summarize_chatgpt':
+        if task == 'deidentify_chatgpt':
             start_time = time.time()
-            result= entityObj.get_chatgpt_response(deidentified)
+            result= entityObj.get_chatgpt_response(deidentified, chatgpt_configs)
             end_time = time.time()
             running_time = end_time - start_time
             response['chatgptApiTime']=str(running_time)+" seconds"
-            response['summary_chatgpt']=result
+            response['chatgpt']=result
         
         elif task=='deidentify_summarize':
             print('custom model: Summarizer')
@@ -80,10 +105,20 @@ def model():
             response['summary']=result
             end_time = time.time()
             running_time = end_time - start_time
-            response['bardSummarizerTime']=str(running_time)+" seconds"            
+            response['bardSummarizerTime']=str(running_time)+" seconds"    
+
+        elif task=='deidentify_chatgpt_classification':
+            print('Deidentify and Classification of Email')
+            start_time = time.time()
+            classificationPrompt="Assign one of the following categories to the text: Rewards Issue, Password Reset, Inquiry, Locked Issue  and others "
+            result = entityObj.get_chatgpt_response(classificationPrompt+"::"+deidentified, chatgpt_configs)
+            response['classification']=result
+            end_time = time.time()
+            running_time = end_time - start_time
+            response['answerTime']=str(running_time)+" seconds"     
 
     except Exception as e:
-        response['error']=e
+        response['error']=e 
         print(e)
     
     

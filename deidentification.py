@@ -307,18 +307,23 @@ class NamedEntityRecognition:
         return output_text
 
     
-    def get_chatgpt_response(self, prompt):
+    def get_chatgpt_response(self, prompt, chatgpt_congiguration):
         import requests
         print('prompt',prompt)
-        api_endpoint = "https://api.openai.com/v1/engines/text-davinci-003/completions"
-        api_key = ""
+        print('chatgpt_congiguration',chatgpt_congiguration)
+        #api_endpoint = "https://api.openai.com/v1/engines/text-davinci-003/completions"
+        
+        api_endpoint = chatgpt_congiguration['cgptEndpoint']
+        api_key = chatgpt_congiguration['apiKey']
 
+        prompt=chatgpt_congiguration['history_conversations']+"    User: "+prompt
         payload = {
         "prompt": prompt,
-        "max_tokens": 500,
-        "temperature": 0.7,
+        "max_tokens": int(chatgpt_congiguration['maxTokens']),
+        "temperature": float(chatgpt_congiguration['temperature']),
+        "n":int(chatgpt_congiguration['numResponses'])
          }
-
+        
         headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -333,10 +338,30 @@ class NamedEntityRecognition:
         print(response_text)
         return response_text
     
+
+
+    def split_conversations(self, text):
+        import nltk
+        import math
+        nltk.download('punkt')
+        words = nltk.word_tokenize(text)
+        conversations = []
+        startTokens=0
+        maxTokens=400
+        tempMax=maxTokens
+        print("total conversation:",math.ceil(len(words)/maxTokens),"   total length ::",len(words))
+        for i in range(math.ceil(len(words)/maxTokens)):
+            conversations.append(' '.join(words[startTokens:maxTokens]))
+            startTokens=maxTokens
+            maxTokens=maxTokens+tempMax
+        return conversations
+    
+    
     def get_entities(self, lukeTokenizer, lukemodel, input_text): 
         removed_Numbers_text=''
         try:
             entitities=[]
+            names=[]
             EntityRecognitionObj = NamedEntityRecognition()
             print('before:',len(input_text.split()))
             input_text=EntityRecognitionObj.remove_confidentiality_notice(input_text)
@@ -349,8 +374,14 @@ class NamedEntityRecognition:
             dobs=EntityRecognitionObj.get_dob_re(input_text)
             cleanedText = EntityRecognitionObj.clean_text(input_text)
             print('CLEANED_TEXT----',cleanedText)
-            names=EntityRecognitionObj.get_NER(lukeTokenizer, lukemodel,cleanedText)
-            
+            multipleConversations=EntityRecognitionObj.split_conversations(cleanedText)
+            print('conversations total ::',len(multipleConversations))
+            for conversation in multipleConversations:
+                print('conversation length ::',len(conversation.split(' ')))
+                names.append(EntityRecognitionObj.get_NER(lukeTokenizer, lukemodel,conversation))
+            names = [item for sublist in names for item in sublist]
+
+            print('flat list',names)
             entitiesDictionary = {}
             entitiesDictionary['SSN']=ssns
             entitiesDictionary['MEMBERID']=memberids
@@ -413,7 +444,38 @@ input_text1 = "  ramesh kumar is living in california and have ssn as 123-32-212
 input_text2=  'Michael Davis born on 01/01/1950 has a member ID of w123423112, SSN 711-38-0829, and email michaeldavis@hotmail.com. Phone number is 12205344654'
 
 input_text3='Patient John Smith, with the Social Security Number 123-45-6789, was born on January 15, 1980. You can contact him at (555) 123-4567. His address is 123 Main Street, Anytown, USA \r\n**** External Email - Use Caution ****\r\n\r\nMy name is Kathrin Lemaich. I submitted to get my dental check up reward on 10/19. It never came. I called last Monday and they said they would look into it. I got an email Thursday 11/10 that said I would have it within 48 hours. That was up yesterday. We had no issues last year. \r\n\r\nThank you. \r\ni am residing in California\r\nkristine.white@alexlee.com .\r\n**** External Email - Use Caution ****\r\n\r\nMy name is Kathrin Lemaich. I submitted to get my dental check up reward on 10/19. It never came. I called last Monday and they said they would look into it. I got an email Thursday 11/10 that said I would have it within 48 hours. That was up yesterday. We had no issues last year. \r\n\r\nThank you. \r\ni am residing in California\r\nkristine.white@alexlee.com . \r\n**** External Email - Use Caution ****\r\n\r\nMy name is Kathrin Lemaich. I submitted to get my dental check up reward on 10/19. It never came. I called last Monday and they said they would look into it. I got an email Thursday 11/10 that said I would have it within 48 hours. That was up yesterday. We had no issues last year. \r\n\r\nThank you. \r\ni am residing in California\r\nkristine.white@alexlee.com  .ramesh kumar is living in california and have ssn as 123-32-2121 date is 11/08/2001 having memidd w123423112 and email  markj@aetna.com and phone num +12205344654 and this information has been sent by the mark jones . ramesh kumar is living in california and have ssn as 123-32-2121 date is 11/08/2001 having memidd w123423112 and email  markj@aetna.com and phone num +12205344654 and this information has been sent by the mark jones '
+input_text4='''Named Entity Recognition (NER) is a subtask of natural language processing (NLP) that aims to identify and classify named entities in text into predefined categories such as person names, organizations, locations, dates, and more. NER plays a crucial role in various applications, including information extraction, question answering, document classification, and entity linking.
 
+NER algorithms typically involve training models on labeled datasets to recognize and classify named entities accurately. These models can be based on machine learning techniques such as Conditional Random Fields (CRF), Hidden Markov Models (HMM), or deep learning approaches like Recurrent Neural Networks (RNN) or Transformer models.
+
+For example, in the sentence "John Smith is a data scientist at XYZ Corporation," the named entity "John Smith" is identified as a person name. Other examples of person names include "Alice Johnson," "David Brown," and "Emily Davis."
+
+The process of NER involves extracting and categorizing named entities, including person names, from text. This information can be used for various purposes, such as personalizing user experiences, identifying key individuals in documents or news articles, and analyzing social media trends related to specific individuals.
+
+Overall, NER is an essential component of many NLP applications, enabling the extraction of valuable information and insights from unstructured text data.
+
+Named Entity Recognition (NER) is a subtask of natural language processing (NLP) that aims to identify and classify named entities in text into predefined categories such as person names, organizations, locations, dates, and more. NER plays a crucial role in various applications, including information extraction, question answering, document classification, and entity linking.
+
+NER algorithms typically involve training models on labeled datasets to recognize and classify named entities accurately. These models can be based on machine learning techniques such as Conditional Random Fields (CRF), Hidden Markov Models (HMM), or deep learning approaches like Recurrent Neural Networks (RNN) or Transformer models.
+
+For example, in the sentence "John Smith is a data scientist at XYZ Corporation," the named entity "John Smith" is identified as a person name. Other examples of person names include "Alice Johnson," "David Brown," and "Emily Davis."
+
+The process of NER involves extracting and categorizing named entities, including person names, from text. This information can be used for various purposes, such as personalizing user experiences, identifying key individuals in documents or news articles, and analyzing social media trends related to specific individuals.
+
+Overall, NER is an essential component of many NLP applications, enabling the extraction of valuable information and insights from unstructured text data.
+
+Named Entity Recognition (NER) is a subtask of natural language processing (NLP) that aims to identify and classify named entities in text into predefined categories such as person names, organizations, locations, dates, and more. NER plays a crucial role in various applications, including information extraction, question answering, document classification, and entity linking.
+
+NER algorithms typically involve training models on labeled datasets to recognize and classify named entities accurately. These models can be based on machine learning techniques such as Conditional Random Fields (CRF), Hidden Markov Models (HMM), or deep learning approaches like Recurrent Neural Networks (RNN) or Transformer models.
+
+For example, in the sentence "John Smith is a data scientist at XYZ Corporation," the named entity "Marc jones" is identified as a person name. Other examples of person names include "Alice Johnson," "David Brown," and "Emily Davis."
+
+The process of NER involves extracting and categorizing named entities, including person names, from text . This information can be used for various purposes, such as personalizing user experiences, identifying key individuals in documents or news articles, and analyzing social media trends related to specific individuals.
+
+Overall, NER is an essential component of many NLP applications, enabling the extraction of valuable information and insights from unstructured text data.
+
+
+'''
 
 print('**********')
 #print(NamedEntityRecognition().get_member_id(input_text3))
@@ -424,7 +486,7 @@ print('****************************')
 #lukeModel=modelObj.getLukeModel()
 #lukeModel=modelObj.loadSavedModel('Ensemble_Torch_NER/')
 #lukeModel=NamedEntityRecognition().loadSavedModel('/Users/nikhiljaitak/Downloads/Suresh_Sir_/Codes/Dev/Code_27Sept/SO_AI-ML_L1L2EmailIntentPredictor-master/Models/Ensemble_Torch_NER/')
-#print(NamedEntityRecognition().get_entities(lukeTokenizer, lukeModel, input_text2))
+#print(NamedEntityRecognition().get_entities(lukeTokenizer, lukeModel, input_text4))
 print('****************************')
 print('****************************')
    
