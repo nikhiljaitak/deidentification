@@ -4,26 +4,13 @@ import sys
 import re
 import nltk
 import time
+import logging
 nltk.download('stopwords')
-from transformers import BartTokenizer, PegasusTokenizer
-from transformers import BartForConditionalGeneration, PegasusForConditionalGeneration
 from transformers import pipeline
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from transformers import LukeTokenizer, LukeForEntitySpanClassification
 from transformers import LukeConfig, LukeModel
-
-import logging
-
-# Configure logging at application startup
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
-# Define a rotating file handler for logging to a file
-file_handler = logging.FileHandler(filename='app.log', mode='a')
-file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-
-# Add the file handler to the root logger
-logging.getLogger().addHandler(file_handler)
 
 class NamedEntityRecognition:
 
@@ -44,7 +31,7 @@ class NamedEntityRecognition:
         return text
     
     
-    def saveHuggingFaceModel(outputPath,model):
+    def saveHuggingFaceModel(self, outputPath,model):
         print("The current function name is:", inspect.currentframe().f_code.co_name)
         model.save_pretrained(outputPath)
 
@@ -52,8 +39,11 @@ class NamedEntityRecognition:
     def loadSavedModel(self, savedModelpath):
         print("The current function name is:", inspect.currentframe().f_code.co_name)
         configuration = LukeConfig()
+        
         LESC = LukeForEntitySpanClassification(configuration)
+        print("Created Entity Span Object")
         savedModel = LESC.from_pretrained(savedModelpath)
+        print("Loaded NER Model")
         return savedModel
     
    
