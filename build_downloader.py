@@ -1,15 +1,13 @@
 from transformers import LukeForEntitySpanClassification, LukeTokenizer
+from model_enum import ModelEnum
+from app_enum import AppEnum
 
-# Define the model name and save paths
-model_name = "studio-ousia/luke-base"
-model_save_path = "/model"
-tokenizer_save_path = "/model/tokenizer"
+model_name = ModelEnum.APP_DOCKER_SEPERATOR.value+ModelEnum.HUGGING_FACE_MODEL.value
+model_save_path = ModelEnum.APP_DOCKER_SEPERATOR.value+ModelEnum.SAVED_MODEL_PATH
+tokenizer_save_path = ModelEnum.APP_DOCKER_SEPERATOR.value+ModelEnum.SAVED_MODEL_PATH
 
-# Download the model and tokenizer
 model = LukeForEntitySpanClassification.from_pretrained(model_name)
 tokenizer = LukeTokenizer.from_pretrained(model_name)
-
-# Save the model and tokenizer
 model.save_pretrained(model_save_path)
 tokenizer.save_pretrained(tokenizer_save_path)
 
